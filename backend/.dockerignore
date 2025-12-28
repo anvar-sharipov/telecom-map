@@ -1,0 +1,10 @@
+.git
+.gitignore
+tmp
+node_modules
+vendor
+.air
+*.log
+.env*
+Dockerfile
+Dockerfile.dev

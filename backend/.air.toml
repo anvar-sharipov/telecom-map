@@ -1,0 +1,16 @@
+# .air.toml
+# Настройки hot-reload для Go
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o tmp/app.exe ./cmd/main.go"
+  entrypoint = "tmp/app.exe"
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  exclude_dir = ["tmp", "vendor"]
+
+[log]
+  time = true
+
+[color]
+  main = "yellow"

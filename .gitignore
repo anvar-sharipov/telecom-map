@@ -1,0 +1,111 @@
+# =====================
+# ENV / SECRETS
+# =====================
+.env.prod            
+.env.local              # локальные переменные
+backend/.env.local      # env для локальной разработки Go
+backend/.env.prod       # env для локальной разработки Go
+.env.*.local            # env файлы для разных окружений (dev, prod)
+*.pem                   # SSL сертификаты
+*.key                   # приватные ключи
+secrets/                # папка с секретами
+
+# =====================
+# GO
+# =====================
+/bin                    # скомпилированные бинарники
+/tmp                    # временные файлы при разработке
+*.exe                   # Windows исполняемые файлы
+*.exe~                  # Windows backup файлы
+*.dll                   # Windows библиотеки
+*.so                    # Unix shared objects
+*.dylib                 # macOS динамические библиотеки
+*.out                   # go test output
+*.test                  # go test binaries
+/vendor                 # vendor dependencies (если используешь go mod vendor)
+coverage.out            # Go coverage reports
+coverage.html           # HTML coverage reports
+
+# =====================
+# DOCKER
+# =====================
+docker-data/            # volume данные (если монтируешь локально)
+docker-compose.override.yml  # локальные переопределения docker-compose
+*.log                   # лог файлы контейнеров
+.dockerignore.local     # локальный dockerignore
+
+# =====================
+# DATABASE
+# =====================
+*.sql.backup            # бэкапы БД
+*.dump                  # database dumps
+/migrations/tmp         # временные миграции
+pgdata/                 # локальные данные PostgreSQL
+
+# =====================
+# IDE / EDITORS
+# =====================
+.idea/                  # JetBrains (GoLand, PyCharm, WebStorm)
+*.iml                   # IntelliJ module files
+.vscode/                # VS Code settings (можно оставить .vscode/*.code-workspace для шаринга)
+*.swp                   # vim swap файлы
+*.swo                   # vim swap файлы
+*.swn                   # vim swap файлы
+*~                      # backup файлы редакторов
+.project                # Eclipse
+.classpath              # Eclipse
+.settings/              # Eclipse
+
+# =====================
+# OS
+# =====================
+.DS_Store               # macOS metadata
+._*                     # macOS resource forks
+Thumbs.db               # Windows image cache
+Desktop.ini             # Windows folder settings
+ehthumbs.db             # Windows thumbnail cache
+$RECYCLE.BIN/           # Windows recycle bin
+
+# =====================
+# FRONTEND (на будущее)
+# =====================
+node_modules/           # npm dependencies
+dist/                   # production build
+build/                  # build output
+.vite/                  # Vite cache
+.next/                  # Next.js build
+.nuxt/                  # Nuxt.js build
+.cache/                 # различные кэши фронтенда
+*.local.css             # локальные CSS файлы
+npm-debug.log*          # npm debug logs
+yarn-debug.log*         # yarn debug logs
+yarn-error.log*         # yarn error logs
+pnpm-debug.log*         # pnpm debug logs
+.eslintcache            # ESLint cache
+
+# =====================
+# TESTING
+# =====================
+coverage/               # test coverage reports
+.nyc_output/            # NYC coverage tool output
+*.cover                 # Go coverage files
+htmlcov/                # Python HTML coverage reports
+
+# =====================
+# MISC
+# =====================
+*.bak                   # backup files
+*.orig                  # merge conflict originals
+*.rej                   # merge conflict rejects
+.air.toml.local         # локальная конфигурация Air (hot reload)
+/uploads                # загруженные пользователями файлы (если не в storage)
+/public/uploads         # публичные uploads
+
+/backend/.env*
+/frontend/.env*
+
+# =====================
+# TEMP / NOTES
+# =====================
+kod_for_create_structure_power_shell.txt
+structure.txt
