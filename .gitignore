@@ -3,6 +3,7 @@
 # =====================
 .env.prod            
 .env.local              # локальные переменные
+.env.local
 backend/.env.local      # env для локальной разработки Go
 backend/.env.prod       # env для локальной разработки Go
 .env.*.local            # env файлы для разных окружений (dev, prod)
