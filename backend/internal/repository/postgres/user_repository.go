@@ -20,8 +20,8 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 
 func (r *UserRepository) Create(user *domain.User) error {
 	query := `
-		INSERT INTO users (username, full_name, phone, password, is_active)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO users (username, full_name, password, is_active)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at
 	`
 
@@ -33,7 +33,6 @@ func (r *UserRepository) Create(user *domain.User) error {
 		query,
 		user.Username,
 		user.FullName,
-		user.Phone,
 		user.Password,
 		user.IsActive,
 	).Scan(&user.ID, &user.CreatedAt)
@@ -43,7 +42,7 @@ func (r *UserRepository) Create(user *domain.User) error {
 
 func (r *UserRepository) GetByID(id int64) (*domain.User, error) {
 	query := `
-	SELECT id, full_name, phone, is_active, created_at
+	SELECT id, username, full_name, is_active, created_at
 	From users
 	WHERE id = $1
 	`
@@ -53,8 +52,8 @@ func (r *UserRepository) GetByID(id int64) (*domain.User, error) {
 	var user domain.User
 	err := row.Scan(
 		&user.ID,
+		&user.Username,
 		&user.FullName,
-		&user.Phone,
 		&user.IsActive,
 		&user.CreatedAt,
 	)
@@ -65,20 +64,20 @@ func (r *UserRepository) GetByID(id int64) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) GetByPhone(phone string) (*domain.User, error) {
+func (r *UserRepository) GetByUsername(username string) (*domain.User, error) {
 	query := `
-		SELECT id, full_name, phone, is_active, created_at
+		SELECT id, username, full_name, is_active, created_at
 		FROM users
-		WHERE phone = $1
+		WHERE username = $1
 	`
 
-	row := r.db.QueryRow(context.Background(), query, phone)
+	row := r.db.QueryRow(context.Background(), query, username)
 
 	var user domain.User
 	err := row.Scan(
 		&user.ID,
+		&user.Username,
 		&user.FullName,
-		&user.Phone,
 		&user.IsActive,
 		&user.CreatedAt,
 	)
@@ -91,7 +90,7 @@ func (r *UserRepository) GetByPhone(phone string) (*domain.User, error) {
 
 func (r *UserRepository) List() ([]*domain.User, error) {
 	query := `
-	SELECT id, full_name, phone, is_active, created_at
+	SELECT id, username, full_name, is_active, created_at
 	FROM users
 	ORDER BY id
 	`
@@ -109,8 +108,8 @@ func (r *UserRepository) List() ([]*domain.User, error) {
 		var user domain.User
 		if err := rows.Scan(
 			&user.ID,
+			&user.Username,
 			&user.FullName,
-			&user.Phone,
 			&user.IsActive,
 			&user.CreatedAt,
 		); err != nil {

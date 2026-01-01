@@ -1,16 +1,16 @@
-import { Outlet } from 'react-router-dom';
-import { LanguageSwitcher } from './LanguageSwitcher';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { Outlet, NavLink } from 'react-router-dom';
+import Header from '../components/Header/Header';
+import Notifications from '../components/Notifications/Notifications';
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900/50 transition-colors">
-      <header className="p-4 flex justify-between items-center border-b dark:border-gray-700">
-        <LanguageSwitcher />
-        <ThemeToggle />
-      </header>
+    <div className="min-h-screen text-gray-900 transition-colors bg-gray-50 dark:bg-zinc-900 dark:text-gray-100">
+      {/* 🔔 Уведомления */}
+      <Notifications />
 
-      <main className="p-4">
+      <Header />
+
+      <main>
         <Outlet />
       </main>
     </div>

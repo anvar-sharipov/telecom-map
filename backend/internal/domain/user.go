@@ -9,7 +9,6 @@ type User struct {
 	Username  string
 	Password  string
 	FullName  string
-	Phone     *string
 	IsActive  bool
 	CreatedAt time.Time
 }

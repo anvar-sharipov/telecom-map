@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -23,15 +24,39 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Fullname string `json:"fullname"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Phone    string `json:"phone"`
+		Fullname        string `json:"fullname"`
+		Username        string `json:"username"`
+		Password        string `json:"password"`
+		ConfirmPassword string `json:"confirm_password"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request body"})
+		return
+	}
+
+	if req.Password != req.ConfirmPassword {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "passwords do not match",
+		})
+		return
+	}
+
+	if req.Password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "password cant be empty",
+		})
+		return
+	}
+
+	if req.Username == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "username cant be empty",
+		})
 		return
 	}
 
@@ -42,21 +67,15 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var phone *string
-	if req.Phone != "" {
-		phone = &req.Phone
-	}
-
 	newUser := &domain.User{
 		FullName: req.Fullname,
 		Username: req.Username,
 		Password: string(hashed),
-		Phone:    phone,
 		IsActive: true,
 	}
 
 	if err := h.UserRepo.Create(newUser); err != nil {
-
+		fmt.Println("UserRepo.Create error:", err) // <--- вот здесь
 		w.Header().Set("Content-Type", "application/json")
 
 		if strings.Contains(err.Error(), "duplicate key") {
@@ -83,7 +102,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User registered successfully",
+		"message": "user registered successfully",
 		"token":   token,
 	})
 }
