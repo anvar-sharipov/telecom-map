@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { showNotification } from '../components/Notifications/notificationSlice';
@@ -21,6 +21,10 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation('auth');
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    document.title = t('register');
+  }, [t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +68,7 @@ export default function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center">
       {/* <Snowfall /> */}
       <form
         autoComplete="off"

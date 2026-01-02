@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/anvar-sharipov/telecom-map/internal/domain"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -66,7 +68,7 @@ func (r *UserRepository) GetByID(id int64) (*domain.User, error) {
 
 func (r *UserRepository) GetByUsername(username string) (*domain.User, error) {
 	query := `
-		SELECT id, username, full_name, is_active, created_at
+		SELECT id, username, full_name, password, is_active, created_at
 		FROM users
 		WHERE username = $1
 	`
@@ -78,10 +80,14 @@ func (r *UserRepository) GetByUsername(username string) (*domain.User, error) {
 		&user.ID,
 		&user.Username,
 		&user.FullName,
+		&user.Password,
 		&user.IsActive,
 		&user.CreatedAt,
 	)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
 		return nil, err
 	}
 

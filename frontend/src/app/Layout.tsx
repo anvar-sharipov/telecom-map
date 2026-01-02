@@ -10,7 +10,7 @@ export default function Layout() {
 
       <Header />
 
-      <main>
+      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
         <Outlet />
       </main>
     </div>

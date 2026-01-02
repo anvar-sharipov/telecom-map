@@ -8,6 +8,7 @@ import (
 
 	"github.com/anvar-sharipov/telecom-map/internal/db"
 	"github.com/anvar-sharipov/telecom-map/internal/handler"
+	"github.com/anvar-sharipov/telecom-map/internal/middleware"
 	"github.com/anvar-sharipov/telecom-map/internal/repository/postgres"
 	"github.com/joho/godotenv"
 )
@@ -32,7 +33,8 @@ func main() {
 	authHandler := &handler.AuthHandler{UserRepo: userRepo}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/register", authHandler.Register)
+	mux.HandleFunc("/register", middleware.ErrorMiddleware(authHandler.Register))
+	mux.HandleFunc("/login", middleware.ErrorMiddleware(authHandler.Login))
 
 	// Middleware для CORS
 	handlerWithCORS := func(h http.Handler) http.Handler {

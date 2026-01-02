@@ -2,27 +2,23 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/anvar-sharipov/telecom-map/internal/domain"
+	"github.com/anvar-sharipov/telecom-map/internal/repository"
 	"github.com/anvar-sharipov/telecom-map/internal/repository/postgres"
 	"github.com/anvar-sharipov/telecom-map/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthHandler struct {
-	UserRepo *postgres.UserRepository
+	UserRepo         *postgres.UserRepository
+	RefreshTokenRepo *repository.RefreshTokenRepository
 }
 
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
-		return
-	}
-
+// ---------------- REGISTER ----------------
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 	var req struct {
 		Fullname        string `json:"fullname"`
 		Username        string `json:"username"`
@@ -31,40 +27,24 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request body"})
-		return
+		return utils.NewBadRequest("Invalid request body")
 	}
 
 	if req.Password != req.ConfirmPassword {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "passwords do not match",
-		})
-		return
+		return utils.NewBadRequest("passwords do not match")
 	}
 
 	if req.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "password cant be empty",
-		})
-		return
+		return utils.NewBadRequest("password cant be empty")
 	}
 
 	if req.Username == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "username cant be empty",
-		})
-		return
+		return utils.NewBadRequest("username cant be empty")
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to hash password"})
-		return
+		return utils.NewInternal("Failed to hash password")
 	}
 
 	newUser := &domain.User{
@@ -75,34 +55,76 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.UserRepo.Create(newUser); err != nil {
-		fmt.Println("UserRepo.Create error:", err) // <--- вот здесь
-		w.Header().Set("Content-Type", "application/json")
-
 		if strings.Contains(err.Error(), "duplicate key") {
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(map[string]string{
-				"error": "username already exists",
-			})
-			return
+			return utils.NewConflict("username already exists")
 		}
-
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "internal server error",
-		})
-		return
+		return utils.NewInternal("internal server error")
 	}
 
 	token, err := utils.GenerateToken(newUser.ID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to generate token"})
-		return
+		return utils.NewInternal("Failed to generate token")
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
+	utils.WriteJSON(w, http.StatusCreated, map[string]string{
 		"message": "user registered successfully",
 		"token":   token,
 	})
+	return nil
+}
+
+// ---------------- LOGIN ----------------
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return utils.NewBadRequest("Invalid request body")
+	}
+
+	if req.Username == "" {
+		return utils.NewBadRequest("username cant be empty")
+	}
+
+	if req.Password == "" {
+		return utils.NewBadRequest("password cant be empty")
+	}
+
+	user, err := h.UserRepo.GetByUsername(req.Username)
+	if err != nil {
+		return utils.NewUnauthorized("invalid credentials")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return utils.NewUnauthorized("invalid credentials")
+	}
+
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		return utils.NewInternal("failed to generate token")
+	}
+
+	// refreshToken, err := utils.GenerateRefreshToken()
+	// if err != nil {
+	// 	return utils.NewInternal("failed to generate refresh token")
+	// }
+
+	// expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	// err = h.RefreshTokenRepo.Create(
+	// 	context.Background(),
+	// 	user.ID,
+	// 	refreshToken,
+	// 	expiresAt,
+	// )
+	// if err != nil {
+	// 	return utils.NewInternal("failed to save refresh token")
+	// }
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "login successful",
+		"token":   token,
+	})
+	return nil
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Home, User } from 'lucide-react';
+import { Menu, X, Home, User, LogIn } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import NavItem from './NavItem';
@@ -16,6 +16,7 @@ const Header = () => {
         <nav className="items-center hidden gap-6 md:flex">
           <NavItem to="/" text="Главная" icon={<Home size={20} />} />
           <NavItem to="/register" text="Регистрация" icon={<User size={20} />} />
+          <NavItem to="/login" text="Логин" icon={<LogIn size={20} />} />
         </nav>
 
         {/* Правая часть */}
