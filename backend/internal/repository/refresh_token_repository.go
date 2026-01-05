@@ -16,17 +16,32 @@ func NewRefreshTokenRepository(db *pgxpool.Pool) *RefreshTokenRepository {
 	return &RefreshTokenRepository{db: db}
 }
 
-func (r *RefreshTokenRepository) Create(ctx context.Context, userID int64, token string, expires time.Time) error {
+func (r *RefreshTokenRepository) Create(
+	ctx context.Context,
+	userID int64,
+	tokenHash string,
+	userAgent string,
+	ipAddress string,
+	expires time.Time,
+) error {
 	query := `
-	INSERT INTO refresh_tokens (user_id, token, expires_at)
-	VALUES ($1, $2, $3)
+	INSERT INTO refresh_tokens (
+		user_id, 
+		token_hash, 
+		user_agent,
+		ip_address,
+		expires_at
+	)
+	VALUES ($1, $2, $3, $4, $5)
 	`
 
 	_, err := r.db.Exec(
 		ctx,
 		query,
 		userID,
-		token,
+		tokenHash,
+		userAgent,
+		ipAddress,
 		expires,
 	)
 	return err
@@ -34,15 +49,33 @@ func (r *RefreshTokenRepository) Create(ctx context.Context, userID int64, token
 
 // 3️⃣ Добавим получение refresh token (важно!)
 // Когда пользователь обновляет access token, мы должны найти refresh token:
-func (r *RefreshTokenRepository) GetByToken(ctx context.Context, token string) (*domain.RefreshToken, error) {
+func (r *RefreshTokenRepository) GetByTokenHash(
+	ctx context.Context,
+	tokenHash string,
+) (*domain.RefreshToken, error) {
 	rt := &domain.RefreshToken{}
 	query := `
-		SELECT id, user_id, token, expires_at, created_at
-		FROM refresh_tokens
-		WHERE token = $1
+		SELECT 
+		id, 
+		user_id, 
+		token_hash,
+		user_agent,
+		ip_address, 
+		expires_at, 
+		created_at
+	FROM refresh_tokens
+	WHERE token_hash = $1
 	`
 
-	err := r.db.QueryRow(ctx, query, token).Scan(&rt.ID, &rt.UserID, &rt.Token, &rt.ExpiresAt)
+	err := r.db.QueryRow(ctx, query, tokenHash).Scan(
+		&rt.ID,
+		&rt.UserID,
+		&rt.TokenHash,
+		&rt.UserAgent,
+		&rt.IPAddress,
+		&rt.ExpiresAt,
+		&rt.CreatedAt,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +85,30 @@ func (r *RefreshTokenRepository) GetByToken(ctx context.Context, token string) (
 
 // 4️⃣ Удаление refresh token (logout / rotation)
 // Очень важно для безопасности:
-func (r *RefreshTokenRepository) Delete(ctx context.Context, token string) error {
+func (r *RefreshTokenRepository) Delete(ctx context.Context, tokenHash string) error {
 	query := `
 		DELETE FROM refresh_tokens 
-		WHERE token = $1
+		WHERE token_hash = $1
 	`
-	_, err := r.db.Exec(ctx, query, token)
+	_, err := r.db.Exec(ctx, query, tokenHash)
+	return err
+}
+
+// Один refresh token на устройство (РЕКОМЕНДУЮ)
+// 👉 Новый логин НЕ удаляет другие,
+// 👉 но перезаписывает токен для того же устройства
+// Как определить устройство:
+// user_agent
+// ip_address (опционально)
+func (r *RefreshTokenRepository) DeleteByUserAndAgent(
+	ctx context.Context,
+	userID int64,
+	userAgent string,
+) error {
+	_, err := r.db.Exec(ctx, `
+	DELETE FROM refresh_tokens
+	WHERE user_id = $1 AND user_agent = $2
+	`, userID, userAgent)
+
 	return err
 }

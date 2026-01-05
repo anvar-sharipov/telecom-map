@@ -26,3 +26,10 @@ func NewUnauthorized(msg string) *APIError {
 func NewInternal(msg string) *APIError {
 	return &APIError{Status: http.StatusInternalServerError, Message: msg}
 }
+
+func NewMethodNotAllowed(msg string) *APIError {
+	return &APIError{
+		Status:  http.StatusMethodNotAllowed,
+		Message: msg,
+	}
+}

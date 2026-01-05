@@ -5,9 +5,9 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center gap-4">
       <h1 className="text-3xl font-bold">Home</h1>
 
-      <Link to="/register" className="text-blue-600 underline">
+      {/* <Link to="/register" className="text-blue-600 underline">
         Go to Register
-      </Link>
+      </Link> */}
     </div>
   );
 }

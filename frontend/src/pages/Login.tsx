@@ -5,10 +5,12 @@ import PasswordInput from '../components/UI/PasswordInput/PasswordInput';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Button from '../components/UI/Button/Button';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showNotification } from '../components/Notifications/notificationSlice';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
+import { setAuth } from '../features/auth/authSlice';
+import DebugAuth from '../components/Debug/DebugAuth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -75,13 +77,13 @@ const Login = () => {
       const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // console.log('tut', res);
         if (data.error.includes('username')) shakeFunc('username');
         if (data.error.includes('password')) shakeFunc('password');
         dispatch(
@@ -92,8 +94,15 @@ const Login = () => {
         );
         return;
       }
+      console.log('data login', data);
+      dispatch(setAuth(data));
 
-      localStorage.setItem('telecom_map_token', data.token);
+      // (Временно) refresh_token можно сохранить в localStorage, ⚠️ Потом мы это уберём в cookie.
+      // ❌ УДАЛЯЕМ
+      // localStorage.setItem('refresh_token_telecom_map', data.refresh_token);
+      // localStorage.setItem('telecom_map_token', data.token);
+      // teper FRONTEND — вообще без refresh token, refresh teper tolko w HTPSCookie
+
       dispatch(
         showNotification({
           message: t('login successful'),
@@ -114,6 +123,7 @@ const Login = () => {
   }, [t]);
   return (
     <div className="flex items-center justify-center">
+      <DebugAuth />
       <form
         autoComplete="off"
         onSubmit={handleSubmit}
