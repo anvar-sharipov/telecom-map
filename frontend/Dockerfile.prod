@@ -1,0 +1,25 @@
+# 1️⃣ Stage сборки React poka ne ispolzuetsya
+# node:20-alpine — лёгкий Node.js образ для сборки
+FROM node:20-alpine AS builder
+
+# 2️⃣ Рабочая директория внутри контейнера
+WORKDIR /app
+
+# 3️⃣ Копируем только файлы зависимостей
+# Это важно для кеша Docker
+COPY package.json package-lock.json ./
+
+# 4️⃣ Устанавливаем зависимости
+# npm ci — строго по lock-файлу (как в проде)
+RUN npm ci
+
+# 5️⃣ Копируем весь frontend-код
+COPY . .
+
+# 6️⃣ Собираем React
+# На выходе появится папка /app/build
+RUN npm run build
+
+# 7 Runtime
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html

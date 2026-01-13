@@ -28,9 +28,14 @@ func NewPostgresPool() (*pgxpool.Pool, error) {
 	fmt.Printf("   Port: [%s]\n", dbPort)
 	fmt.Printf("   Name: [%s]\n", dbName)
 
+	sslMode := os.Getenv("DB_SSLMODE")
+	if sslMode == "" {
+		sslMode = "disable" // dev по умолчанию
+	}
+
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		dbUser, dbPass, dbHost, dbPort, dbName,
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		dbUser, dbPass, dbHost, dbPort, dbName, sslMode,
 	)
 
 	// Выведите полный DSN (БЕЗ пароля в продакшене!)

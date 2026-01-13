@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
-import { showNotification } from '../components/Notifications/notificationSlice';
+// import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../app/hooks';
+import { showNotification } from '../features/notifications/notificationSlice';
 import Input from '../components/UI/Input';
 import PasswordInput from '../components/UI/PasswordInput/PasswordInput';
 import ConfirmPassword from '../components/UI/PasswordInput/ConfirmPassword';
 import { Loader2 } from 'lucide-react';
 import Button from '../components/UI/Button/Button';
 import { motion } from 'framer-motion';
+import { setAuth } from '../features/auth/authSlice';
+import { useNavigate } from 'react-router-dom';
 // import Snowfall from 'react-snowfall';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -20,7 +23,8 @@ export default function Register() {
   const [shake, setShake] = useState(false);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation('auth');
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     document.title = t('register');
@@ -45,6 +49,7 @@ export default function Register() {
       const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, fullname, password, confirm_password: confirmPassword }),
       });
 
@@ -56,9 +61,15 @@ export default function Register() {
         }
         return;
       }
-
-      dispatch(showNotification({ message: t(data.message), type: 'success' }));
-      localStorage.setItem('telecom_map_token', data.token);
+      dispatch(
+        setAuth({
+          access_token: data.access_token,
+          expires_at: data.expires_at,
+        }),
+      );
+      // dispatch(showNotification({ message: t(data.message), type: 'success' }));
+      navigate('/');
+      // localStorage.setItem('telecom_map_token', data.token);
     } catch (err) {
       console.error(err);
       dispatch(showNotification({ message: t('something went wrong'), type: 'error' }));

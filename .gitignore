@@ -110,3 +110,6 @@ htmlcov/                # Python HTML coverage reports
 # =====================
 kod_for_create_structure_power_shell.txt
 structure.txt
+
+nginx/ssl/*.key
+nginx/ssl/*.crt

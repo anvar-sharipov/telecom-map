@@ -5,24 +5,24 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import NavItem from './NavItem';
 import MobileLink from './MobileLink';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { clearAuth } from '../../features/auth/authSlice';
 import Button from '../UI/Button/Button';
-import { showNotification } from '../Notifications/notificationSlice';
+import { showNotification } from '../../features/notifications/notificationSlice';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import useCheckAuth from '../../hooks/useCheckAuth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const dispatch = useDispatch();
-  const isAuth = useSelector((state: RootState) => state.auth.isAuth);
+  const dispatch = useAppDispatch();
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
-  const { loading } = useCheckAuth();
+
+  const { isAuth, loading, user } = useAppSelector((state: RootState) => state.auth);
+  console.log('user', user);
 
   const handleLogout = async () => {
     try {
@@ -43,12 +43,12 @@ const Header = () => {
       }
 
       dispatch(clearAuth());
-      dispatch(
-        showNotification({
-          message: t('logout successfull'),
-          type: 'success',
-        }),
-      );
+      // dispatch(
+      //   showNotification({
+      //     message: t('logout successfull'),
+      //     type: 'success',
+      //   }),
+      // );
       navigate('/login');
     } catch (err) {
       console.log('err logout == ', err);
@@ -67,7 +67,7 @@ const Header = () => {
   //   );
 
   return (
-    <header className="bg-white border-b border-gray-200 dark:border-zinc-700 dark:bg-zinc-800">
+    <header className="font-bold bg-white border-b border-gray-200 dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex items-center justify-between px-4 py-3 mx-auto max-w-7xl">
         {/* Левая часть */}
         <nav className="items-center hidden gap-6 md:flex">
@@ -76,8 +76,8 @@ const Header = () => {
             // <Loader2 className="w-4 h-4 animate-spin" />
             (!isAuth ? (
               <>
-                <NavItem to="/register" text="Регистрация" icon={<User size={20} />} />
-                <NavItem to="/login" text="Логин" icon={<LogIn size={20} />} />
+                <NavItem to="/register" text={t('register')} icon={<User size={20} />} />
+                <NavItem to="/login" text={t('login')} icon={<LogIn size={20} />} />
               </>
             ) : (
               <>
@@ -92,6 +92,7 @@ const Header = () => {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <ThemeToggle />
+          <div>{user?.username}</div>
 
           {/* Бургер (только на мобилке) */}
           <button

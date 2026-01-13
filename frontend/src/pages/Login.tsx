@@ -5,18 +5,19 @@ import PasswordInput from '../components/UI/PasswordInput/PasswordInput';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Button from '../components/UI/Button/Button';
-import { useDispatch, useSelector } from 'react-redux';
-import { showNotification } from '../components/Notifications/notificationSlice';
+import { showNotification } from '../features/notifications/notificationSlice';
 import clsx from 'clsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { setAuth } from '../features/auth/authSlice';
 import DebugAuth from '../components/Debug/DebugAuth';
+import { useAppDispatch } from '../app/hooks';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
+  const location = useLocation();
   const { t } = useTranslation('auth');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -25,6 +26,18 @@ const Login = () => {
   const [shakeUsername, setShakeUsername] = useState(false);
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+
+  console.log('location', location.state);
+  useEffect(() => {
+    if (location.state?.from) {
+      dispatch(
+        showNotification({
+          message: t('please login first'),
+          type: 'error',
+        }),
+      );
+    }
+  }, []);
 
   const shakeFunc = (filed: 'username' | 'password') => {
     if (filed.includes('password')) {
@@ -47,8 +60,6 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log('username', username);
-    // console.log('password', password);
 
     if (username === '') {
       shakeFunc('username');
@@ -94,7 +105,6 @@ const Login = () => {
         );
         return;
       }
-      console.log('data login', data);
       dispatch(setAuth(data));
 
       // (Временно) refresh_token можно сохранить в localStorage, ⚠️ Потом мы это уберём в cookie.
@@ -103,14 +113,15 @@ const Login = () => {
       // localStorage.setItem('telecom_map_token', data.token);
       // teper FRONTEND — вообще без refresh token, refresh teper tolko w HTPSCookie
 
-      dispatch(
-        showNotification({
-          message: t('login successful'),
-          type: 'success',
-        }),
-      );
-      navigate('/');
+      // dispatch(
+      //   showNotification({
+      //     message: t('login successful'),
+      //     type: 'success',
+      //   }),
+      // );
       console.log('data', data);
+
+      navigate('/');
     } catch (err) {
       console.log('err login == ', err);
     } finally {

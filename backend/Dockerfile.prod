@@ -1,0 +1,36 @@
+# backend/Dockerfile.prod
+# golang:1.22-alpine — это официальный образ Go с версией 1.22 на лёгком Alpine Linux.
+# AS builder — создаём stage сборки, чтобы позже можно было взять только бинарь и не тащить
+FROM golang:1.22-alpine AS builder
+
+# 2️⃣ Создаём рабочую директорию внутри контейнера
+# Все команды COPY, RUN, CMD будут выполняться внутри /app.
+WORKDIR /app
+
+# 3️⃣ Копируем файлы зависимостей и скачиваем их
+# COPY go.mod go.sum ./ — копируем только файлы с зависимостями.
+# RUN go mod download — скачиваем все зависимости.
+COPY go.mod go.sum ./
+RUN go mod download
+
+# 4️⃣ Копируем весь код проекта в контейнер
+COPY . .
+# Теперь у нас есть весь код Go в /app контейнера.
+# . означает все файлы из текущей папки (backend), кроме того, что указано в .dockerignore.
+
+# 5️⃣ Сборка Go-приложения в бинарь
+# go build -o app . — компилируем проект в один бинарный файл app.
+# Этот бинарь будет запускаться в финальном контейнере, без нужды ставить Go.
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app
+
+# 6️⃣ Минимальный образ для запуска
+# Берём чистый маленький образ Alpine, чтобы бинарь занимал минимум места.
+# Рабочая директория /app — место, где будет лежать бинарь.
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+COPY --from=builder /app/app .
+EXPOSE 8000
+CMD ["./app"]

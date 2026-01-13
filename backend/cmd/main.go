@@ -11,16 +11,42 @@ import (
 	"github.com/anvar-sharipov/telecom-map/internal/middleware"
 	"github.com/anvar-sharipov/telecom-map/internal/repository"
 	"github.com/anvar-sharipov/telecom-map/internal/repository/postgres"
+	"github.com/anvar-sharipov/telecom-map/internal/service"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load(".env.local")
-	if err != nil {
-		log.Fatal("Error loading .env.local file")
+	// w prod ne nujen wstawlyaet dannye w os.Getenv w prode w os.Getenv wstawlyaet dannye pri docker-compose w ney est env_file punkt tam wybiratesya env
+
+	appEnv := os.Getenv("APP_ENV")
+
+	if appEnv != "prod" {
+		err := godotenv.Load("../.env.local")
+		if err != nil {
+			log.Fatal("Error loading ../.env.local file")
+		}
 	}
 
+	// err := godotenv.Load(".env.local")
+	// if err != nil {
+	// 	log.Fatal("Error loading .env.local file")
+	// }
+
 	APP_PORT := os.Getenv("APP_PORT")
+	if APP_PORT == "" {
+		APP_PORT = "8000"
+	}
+
+	apiPrefix := os.Getenv("API_PREFIX")
+
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		if appEnv == "prod" {
+			frontendURL = "https://192.168.25.74"
+		} else {
+			frontendURL = "http://localhost:5173"
+		}
+	}
 
 	pool, err := db.NewPostgresPool()
 	if err != nil {
@@ -30,25 +56,51 @@ func main() {
 
 	fmt.Println("✅ Connected to Postgres successfully!")
 
+	// 1️⃣ СНАЧАЛА создаём репозитории
 	userRepo := postgres.NewUserRepository(pool)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(pool) // 🔥 ТУТ БЫЛО refreshRepo
+
+	// 2️⃣ ПОТОМ создаём сервис (использует refreshTokenRepo)
+	authService := &service.AuthService{
+		RefreshTokenRepo: refreshTokenRepo, // 🔥 ТЕПЕРЬ ОН УЖЕ СУЩЕСТВУЕТ
+	}
+
 	// authHandler := &handler.AuthHandler{UserRepo: userRepo}
-	refreshRepo := repository.NewRefreshTokenRepository(pool)
+	// refreshRepo := repository.NewRefreshTokenRepository(pool)
 	authHandler := &handler.AuthHandler{
 		UserRepo:         userRepo,
-		RefreshTokenRepo: refreshRepo,
+		RefreshTokenRepo: refreshTokenRepo,
+		AuthService:      authService,
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/register", middleware.ErrorMiddleware(authHandler.Register))
-	mux.HandleFunc("/login", middleware.ErrorMiddleware(authHandler.Login))
-	mux.HandleFunc("/auth/refresh", middleware.ErrorMiddleware(authHandler.Refresh))
-	mux.HandleFunc("/auth/logout", middleware.ErrorMiddleware(authHandler.Logout))
-	mux.HandleFunc("/auth/me", middleware.ErrorMiddleware(authHandler.Me))
+	mux.HandleFunc(apiPrefix+"/register", middleware.ErrorMiddleware(authHandler.Register))
+	mux.HandleFunc(apiPrefix+"/login", middleware.ErrorMiddleware(authHandler.Login))
+	mux.HandleFunc(apiPrefix+"/auth/refresh", middleware.ErrorMiddleware(authHandler.Refresh))
+	mux.HandleFunc(apiPrefix+"/auth/logout", middleware.ErrorMiddleware(authHandler.Logout))
+	mux.HandleFunc(apiPrefix+"/auth/me", middleware.ErrorMiddleware(authHandler.Me))
 
 	// Middleware для CORS
 	handlerWithCORS := func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+			origin := r.Header.Get("Origin")
+			if origin == frontendURL {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			}
+
+			// origin := r.Header.Get("Origin")
+			// if appEnv == "prod" && origin == "https://192.168.25.74" {
+			// 	w.Header().Set("Access-Control-Allow-Origin", origin)
+			// } else if appEnv != "prod" && origin == "http://localhost:5173" {
+			// 	w.Header().Set("Access-Control-Allow-Origin", origin)
+			// }
+
+			// if appEnv == "prod" {
+			// 	w.Header().Set("Access-Control-Allow-Origin", "https://192.168.25.74")
+			// } else {
+			// 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+			// }
+
 			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			w.Header().Set("Access-Control-Allow-Credentials", "true") // 🔥 ВАЖНО dlya cookie
@@ -63,5 +115,7 @@ func main() {
 	}
 
 	fmt.Printf("Server running on :%s\n", APP_PORT)
+	log.Printf("🚀 Server started on :%s (env=%s)", APP_PORT, os.Getenv("APP_ENV"))
+
 	log.Fatal(http.ListenAndServe(":"+APP_PORT, handlerWithCORS(mux)))
 }

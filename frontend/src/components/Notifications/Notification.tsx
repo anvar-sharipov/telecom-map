@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
-import { removeNotification } from './notificationSlice';
+import { removeNotification } from '../../features/notifications/notificationSlice';
 import { useEffect } from 'react';
 import Snowfall from 'react-snowfall';
 
