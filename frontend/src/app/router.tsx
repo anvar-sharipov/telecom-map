@@ -5,6 +5,9 @@ import Layout from './Layout';
 import Login from '../pages/Login';
 import ProtectedRoute from '../routes/ProtectedRoute';
 
+// admin panel
+import AdminMain from '../pages/admin/AdminMain';
+
 export const router = createBrowserRouter([
   {
     element: <Layout />, // 👈 общий layout
@@ -25,6 +28,10 @@ export const router = createBrowserRouter([
           {
             path: '/',
             element: <Home />,
+          },
+          {
+            path: '/admin-panel',
+            element: <AdminMain />,
           },
           // сюда потом:
           // {

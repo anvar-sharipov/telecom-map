@@ -13,6 +13,8 @@ import { showNotification } from '../../features/notifications/notificationSlice
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+// admin panel
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Header = () => {
@@ -72,6 +74,8 @@ const Header = () => {
         {/* Левая часть */}
         <nav className="items-center hidden gap-6 md:flex">
           <NavItem to="/" text="Главная" icon={<Home size={20} />} />
+          {isAuth && <NavItem to="/admin-panel" text={t('admin panel')} icon="" />}
+
           {!loading &&
             // <Loader2 className="w-4 h-4 animate-spin" />
             (!isAuth ? (

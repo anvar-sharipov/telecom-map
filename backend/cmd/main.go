@@ -17,7 +17,6 @@ import (
 
 func main() {
 	// w prod ne nujen wstawlyaet dannye w os.Getenv w prode w os.Getenv wstawlyaet dannye pri docker-compose w ney est env_file punkt tam wybiratesya env
-
 	appEnv := os.Getenv("APP_ENV")
 
 	if appEnv != "prod" {

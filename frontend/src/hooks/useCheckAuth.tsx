@@ -21,6 +21,8 @@ export default function useCheckAuth() {
         if (res.ok) {
           // const user = await res.json();
           const data = await res.json();
+          console.log('data', data);
+
           dispatch(
             setAuth({
               access_token: null,
@@ -29,6 +31,8 @@ export default function useCheckAuth() {
             }),
           );
           return;
+        } else {
+          console.log('NONNONONO');
         }
 
         // 2️⃣ Пробуем refresh
@@ -38,6 +42,7 @@ export default function useCheckAuth() {
         });
 
         if (!refreshRes.ok) {
+          console.log('NONNONONO2');
           throw new Error('refresh failed');
         }
 

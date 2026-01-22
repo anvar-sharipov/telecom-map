@@ -11,4 +11,5 @@ type User struct {
 	FullName  string
 	IsActive  bool
 	CreatedAt time.Time
+	Groups    []*Group
 }

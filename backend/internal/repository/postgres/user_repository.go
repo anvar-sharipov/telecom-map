@@ -126,3 +126,84 @@ func (r *UserRepository) List() ([]*domain.User, error) {
 
 	return users, nil
 }
+
+func (r *UserRepository) ListWithGroups(ctx context.Context) ([]*domain.User, error) {
+	query := `
+	SELECT
+		u.id,
+		u.surname,
+		u.full_name,
+		u.is_active,
+		u.created_at,
+		g.id,
+		g.name,
+		g.description,
+		g.is_active
+	FROM users u
+	LEFT JOIN user_groups ug ON ug.user_id = u.id
+	LEFT JOIN groups g ON g.id = ug.group_id
+	ORDER BY u.id
+	`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	userMap := make(map[int64]*domain.User)
+
+	for rows.Next() {
+		var (
+			userID      int64
+			groupID     *int64
+			groupName   *string
+			groupDesc   *string
+			groupActive *bool
+		)
+
+		var user domain.User
+
+		err := rows.Scan(
+			&userID,
+			&user.Username,
+			&user.FullName,
+			&user.IsActive,
+			&user.CreatedAt,
+			&groupID,
+			&groupName,
+			&groupDesc,
+			&groupActive,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		existing, ok := userMap[userID]
+		if !ok {
+			user.ID = userID
+			user.Groups = []*domain.Group{}
+			userMap[userID] = &user
+			existing = &user
+
+		}
+
+		if groupID != nil {
+			existing.Groups = append(existing.Groups, &domain.Group{
+				ID:          *groupID,
+				Name:        *groupName,
+				Description: *groupDesc,
+				IsActive:    *groupActive,
+			})
+		}
+	}
+
+	users := make([]*domain.User, 0, len(userMap))
+
+	for _, u := range userMap {
+		users = append(users, u)
+	}
+
+	return nil, nil
+}
