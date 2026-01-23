@@ -163,12 +163,38 @@ func (r *GroupRepository) Update(
 	return nil
 }
 
-// func (r *GroupRepository) Delete(ctx context.Context, id int64) error {
-// 	query := `DELETE FROM groups WHERE id = $1`
-// 	_, err := r.db.Exec(ctx, query, id)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to delete group: %w", err)
-// 	}
+func (r *GroupRepository) ListByActive(ctx context.Context, active bool) ([]Group, error) {
+	const query = `
+		SELECT id, name, description, is_active, created_at
+		FROM groups
+		WHERE is_active = $1
+		ORDER BY name
+	`
 
-// 	return nil
-// }
+	rows, err := r.db.Query(ctx, query, active)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list groups by active: %w", err)
+	}
+	defer rows.Close()
+
+	var groups []Group
+	for rows.Next() {
+		var g Group
+		if err := rows.Scan(
+			&g.ID,
+			&g.Name,
+			&g.Description,
+			&g.IsActive,
+			&g.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan group: %w", err)
+		}
+		groups = append(groups, g)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return groups, nil
+}

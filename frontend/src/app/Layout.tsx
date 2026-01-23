@@ -12,7 +12,7 @@ export default function Layout() {
 
       <Header />
 
-      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center">
+      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center text-[12px] md:text-sm">
         <Outlet />
       </main>
     </div>

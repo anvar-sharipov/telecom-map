@@ -131,7 +131,7 @@ func (r *UserRepository) ListWithGroups(ctx context.Context) ([]*domain.User, er
 	query := `
 	SELECT
 		u.id,
-		u.surname,
+		u.username,
 		u.full_name,
 		u.is_active,
 		u.created_at,
@@ -182,11 +182,15 @@ func (r *UserRepository) ListWithGroups(ctx context.Context) ([]*domain.User, er
 
 		existing, ok := userMap[userID]
 		if !ok {
-			user.ID = userID
-			user.Groups = []*domain.Group{}
-			userMap[userID] = &user
-			existing = &user
-
+			existing = &domain.User{
+				ID:        userID,
+				Username:  user.Username,
+				FullName:  user.FullName,
+				IsActive:  user.IsActive,
+				CreatedAt: user.CreatedAt,
+				Groups:    []*domain.Group{},
+			}
+			userMap[userID] = existing
 		}
 
 		if groupID != nil {
@@ -205,5 +209,5 @@ func (r *UserRepository) ListWithGroups(ctx context.Context) ([]*domain.User, er
 		users = append(users, u)
 	}
 
-	return nil, nil
+	return users, nil
 }

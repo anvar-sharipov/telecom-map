@@ -1,5 +1,8 @@
 {
   "app_name": "Meniň programmam",
   "save": "Saklamak",
-  "cancel": "Bes et"
+  "cancel": "Bes et",
+  "loading": "Ýüklenýär...",
+  "Users": "Ulanyjylar",
+  "Admin panel": "Admin paneli"
 }
