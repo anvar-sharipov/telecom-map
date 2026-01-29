@@ -10,8 +10,9 @@ import (
 	"github.com/anvar-sharipov/telecom-map/internal/handler"
 
 	// "github.com/anvar-sharipov/telecom-map/internal/handler/admin"
-	admin "github.com/anvar-sharipov/telecom-map/internal/handler/admin"
+
 	admingroups "github.com/anvar-sharipov/telecom-map/internal/handler/admin/groups"
+	"github.com/anvar-sharipov/telecom-map/internal/handler/admin/users"
 	"github.com/anvar-sharipov/telecom-map/internal/middleware"
 	"github.com/anvar-sharipov/telecom-map/internal/repository"
 	"github.com/anvar-sharipov/telecom-map/internal/repository/postgres"
@@ -77,7 +78,7 @@ func main() {
 		AuthService:      authService,
 	}
 
-	adminHandler := &admin.AdminHandler{
+	adminUsersHandler := &users.Handler{
 		UserRepo: userRepo,
 	}
 
@@ -92,7 +93,7 @@ func main() {
 	mux.HandleFunc(apiPrefix+"/auth/logout", middleware.ErrorMiddleware(authHandler.Logout))
 	mux.HandleFunc(apiPrefix+"/auth/me", middleware.ErrorMiddleware(authHandler.Me))
 	// admin
-	mux.HandleFunc(apiPrefix+"/admin/users", middleware.ErrorMiddleware(middleware.Auth(adminHandler.ListUsers)))
+	mux.HandleFunc(apiPrefix+"/admin/users", middleware.ErrorMiddleware(middleware.Auth(adminUsersHandler.Handle)))
 	mux.HandleFunc(apiPrefix+"/admin/groups", middleware.ErrorMiddleware(middleware.Auth(adminGroupHandler.ListGroups)))
 	// mux.HandleFunc(apiPrefix+"/admin/users", middleware.ErrorMiddleware(adminHandler.ListUsers))
 

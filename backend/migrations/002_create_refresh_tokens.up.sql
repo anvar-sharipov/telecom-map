@@ -6,4 +6,4 @@ CREATE TABLE refresh_tokens (
     ip_address TEXT,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
-);
+); 

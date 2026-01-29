@@ -44,8 +44,8 @@ func (s *AuthService) CreateSession(ctx context.Context, data SessionData) (*Tok
 	refreshTokenHash := utils.HashToken(refreshToken)
 
 	// 4️⃣ Срок действия (30 секунд для теста, потом 7 дней)
-	expiresAt := time.Now().Add(30 * time.Second)
-	// expiresAt := time.Now().Add(7 * 24 * time.Hour) // продакшн
+	// expiresAt := time.Now().Add(10 * time.Second)
+	expiresAt := time.Now().Add(7 * 24 * time.Hour) // продакшн
 
 	// 5️⃣ Удаляем старый токен для этого устройства (если есть)
 	err = s.RefreshTokenRepo.DeleteByUserAndAgent(ctx, data.UserID, data.UserAgent)

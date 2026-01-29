@@ -2,11 +2,14 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/anvar-sharipov/telecom-map/internal/domain"
+	"github.com/anvar-sharipov/telecom-map/internal/repository"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -210,4 +213,52 @@ func (r *UserRepository) ListWithGroups(ctx context.Context) ([]*domain.User, er
 	}
 
 	return users, nil
+}
+
+func (r *UserRepository) CreateWithGroups(
+	ctx context.Context,
+	user *domain.User,
+	groupIDs []int64,
+) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	// создаём пользователя
+	err = tx.QueryRow(ctx, `
+		INSERT INTO users (username, full_name, password, is_active)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, created_at
+	`,
+		user.Username,
+		user.FullName,
+		user.Password,
+		user.IsActive,
+	).Scan(&user.ID, &user.CreatedAt)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" { // unique_violation
+				return repository.ErrUserAlreadyExists
+			}
+		}
+		return err
+	}
+
+	// добавляем группы
+	for _, gid := range groupIDs {
+		_, err := tx.Exec(ctx, `
+			INSERT INTO user_groups (user_id, group_id)
+			VALUES ($1, $2)
+		`, user.ID, gid)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
 }

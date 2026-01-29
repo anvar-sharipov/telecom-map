@@ -156,7 +156,7 @@ export default function UserForm({ mode, initialValues, onSubmit, onCancel }: Pr
           <div>
             <label className="block mb-1 text-sm">Groups</label>
             <div className="space-y-1">
-              {groups.map((g: any) => (
+              {groups?.map((g: any) => (
                 <label key={g.ID} className="flex items-center gap-2">
                   <Field type="checkbox" name="group_ids" value={String(g.ID)} />
                   {g.Name}

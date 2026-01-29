@@ -1,6 +1,8 @@
 import './i18n';
 import './styles/index.css';
 import App from './app/App.tsx';
+import 'leaflet/dist/leaflet.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 // Подключил Redux к React. Теперь любой компонент может использовать Redux.
 import ReactDOM from 'react-dom/client';

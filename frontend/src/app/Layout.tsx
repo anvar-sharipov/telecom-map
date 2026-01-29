@@ -11,8 +11,8 @@ export default function Layout() {
       <Notifications />
 
       <Header />
-
-      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center text-[12px] md:text-sm">
+      {/* flex min-h-[calc(100vh-64px)] items-center justify-center text-[12px] md:text-sm */}
+      <main>
         <Outlet />
       </main>
     </div>

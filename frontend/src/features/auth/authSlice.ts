@@ -32,7 +32,10 @@ const authSlice = createSlice({
       state.expiresAt = action.payload.expires_at;
       state.isAuth = true;
       state.loading = false;
-      state.user = action.payload.user;
+      if (action.payload.user) {
+        state.user = action.payload.user;
+      }
+      // state.user = action.payload.user;
     },
     clearAuth(state) {
       state.accessToken = null;
