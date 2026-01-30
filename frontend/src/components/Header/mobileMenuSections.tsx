@@ -1,5 +1,5 @@
 import { Home, Shield, UserPlus, LogIn, User, LogOut } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 
 export const mobileMenuSections = [
   {

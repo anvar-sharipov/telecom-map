@@ -13,6 +13,7 @@ import (
 
 	admingroups "github.com/anvar-sharipov/telecom-map/internal/handler/admin/groups"
 	"github.com/anvar-sharipov/telecom-map/internal/handler/admin/users"
+	"github.com/anvar-sharipov/telecom-map/internal/handler/nodes"
 	"github.com/anvar-sharipov/telecom-map/internal/middleware"
 	"github.com/anvar-sharipov/telecom-map/internal/repository"
 	"github.com/anvar-sharipov/telecom-map/internal/repository/postgres"
@@ -86,6 +87,11 @@ func main() {
 		GroupRepo: groupRepo,
 	}
 
+	nodeRepo := postgres.NewNodeRepository(pool)
+	nodeHandler := &nodes.Handler{
+		NodeRepo: nodeRepo,
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc(apiPrefix+"/register", middleware.ErrorMiddleware(authHandler.Register))
 	mux.HandleFunc(apiPrefix+"/login", middleware.ErrorMiddleware(authHandler.Login))
@@ -96,6 +102,9 @@ func main() {
 	mux.HandleFunc(apiPrefix+"/admin/users", middleware.ErrorMiddleware(middleware.Auth(adminUsersHandler.Handle)))
 	mux.HandleFunc(apiPrefix+"/admin/groups", middleware.ErrorMiddleware(middleware.Auth(adminGroupHandler.ListGroups)))
 	// mux.HandleFunc(apiPrefix+"/admin/users", middleware.ErrorMiddleware(adminHandler.ListUsers))
+
+	mux.HandleFunc(apiPrefix+"/nodes", middleware.ErrorMiddleware(nodeHandler.List))
+	mux.HandleFunc(apiPrefix+"/nodes/create", middleware.ErrorMiddleware(nodeHandler.Create))
 
 	// Middleware для CORS
 	handlerWithCORS := func(h http.Handler) http.Handler {

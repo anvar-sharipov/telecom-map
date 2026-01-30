@@ -25,6 +25,7 @@ type Props = {
 export default function UserForm({ mode, initialValues, onSubmit, onCancel }: Props) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  loading;
 
   const fetchGroups = async () => {
     setLoading(true);

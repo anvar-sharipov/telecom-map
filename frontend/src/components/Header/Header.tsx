@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Home, User, LogIn, LogOut, Shield, UserPlus } from 'lucide-react';
+import { Menu, X, Home, User, LogIn, LogOut } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import NavItem from './NavItem';
@@ -8,7 +8,7 @@ import MobileLink from './MobileLink';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { clearAuth } from '../../features/auth/authSlice';
-import Button from '../UI/Button/Button';
+// import Button from '../UI/Button/Button';
 import { showNotification } from '../../features/notifications/notificationSlice';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';

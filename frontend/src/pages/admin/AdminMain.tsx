@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { Menu, X, ChevronLeft } from 'lucide-react';
 
 import UsersTable from './users/UserTable';
 
-const desktopSidebarVariants = {
+const desktopSidebarVariants: Variants = {
   open: {
     width: 256,
     transition: { type: 'spring', stiffness: 220, damping: 26 },
@@ -16,7 +17,7 @@ const desktopSidebarVariants = {
   },
 };
 
-const mobileSidebarVariants = {
+const mobileSidebarVariants: Variants = {
   hidden: { x: '-100%' },
   visible: {
     x: 0,

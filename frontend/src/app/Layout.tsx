@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Header from '../components/Header/Header';
 import Notifications from '../components/Notifications/Notifications';
 import useCheckAuth from '../hooks/useCheckAuth';
@@ -12,7 +12,7 @@ export default function Layout() {
 
       <Header />
       {/* flex min-h-[calc(100vh-64px)] items-center justify-center text-[12px] md:text-sm */}
-      <main>
+      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center text-[12px] md:text-sm">
         <Outlet />
       </main>
     </div>

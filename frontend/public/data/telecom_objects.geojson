@@ -11,7 +11,8 @@
         "id": "my_home",
         "type": "home",
         "name": "my_home",
-        "comment": "Мой дом"
+        "comment": "Мой дом",
+        "welayat": "Dashoguz"
       }
     }
   ]

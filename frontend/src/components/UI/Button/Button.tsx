@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 
 type ButtonProps = {
   children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   icon?: ReactNode;
   isLoading?: boolean;
@@ -24,6 +24,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-zinc-700 dark:text-gray-100 dark:hover:bg-zinc-600',
       outline:
         'border border-gray-300 text-gray-900 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-100 dark:hover:bg-zinc-800',
+      danger: 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600',
     };
 
     const sizes = {

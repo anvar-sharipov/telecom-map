@@ -1,11 +1,19 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
+import MainButtons from './map_pages/MainButtons';
 
 const Home: React.FC = () => {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  type MapMode = 'idle' | 'create-telecom' | 'create-magistral';
+  const [mode, setMode] = useState<MapMode>('idle');
+  const modeRef = useRef<MapMode>('idle');
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -280,26 +288,27 @@ const Home: React.FC = () => {
       });
     });
 
+    // map.on('click', (e) => {
+    //   const { lng, lat } = e.lngLat;
+    //   console.log('📍 Координаты:', lng, lat);
+    // });
+
     map.on('click', (e) => {
       const { lng, lat } = e.lngLat;
-      console.log('📍 Координаты:', lng, lat);
+
+      if (modeRef.current === 'create-telecom') {
+        console.log('📡 CREATE TELECOM:', lng, lat);
+
+        // ⏳ дальше тут будет:
+        // add point to geojson
+        // or POST /nodes
+
+        setMode('idle');
+        return;
+      }
+
+      console.log('📍 Обычный клик:', lng, lat);
     });
-
-    // map.on('load', () => {
-    //   map.on('styleimagemissing', async (e) => {
-    //     const name = e.id;
-
-    //     try {
-    //       const image = await map.loadImage(`/maps/icons/${name}.png`);
-    //       if (!map.hasImage(name)) {
-    //         map.addImage(name, image.data, { sdf: true });
-    //         console.log('✅ icon loaded:', name);
-    //       }
-    //     } catch {
-    //       console.warn('❌ no icon:', name);
-    //     }
-    //   });
-    // });
 
     (window as any).map = map;
 
@@ -309,7 +318,34 @@ const Home: React.FC = () => {
     };
   }, []);
 
-  return <div ref={mapRef} style={{ width: '100%', height: '100vh' }} />;
+  const zoomToDashoguz = () => {
+    if (!(window as any).map) return;
+
+    (window as any).map.fitBounds(
+      [
+        [58.5, 41.1], // юго-запад
+        [60.4, 42.5], // северо-восток
+      ],
+      {
+        padding: {
+          top: 120, // 👈 под кнопку
+          bottom: 40, // 👈 показываем низ
+          left: 30,
+          right: 30,
+        },
+        duration: 1200,
+      },
+    );
+  };
+  return (
+    <>
+      <div ref={mapRef} style={{ width: '100%', height: '100vh' }} />
+
+      <div>
+        <MainButtons zoomToDashoguz={zoomToDashoguz} mode={mode} setMode={setMode} />
+      </div>
+    </>
+  );
 };
 
 export default Home;

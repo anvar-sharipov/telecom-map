@@ -1,0 +1,2 @@
+ALTER TABLE edges
+ADD COLUMN magistral_id UUID REFERENCES magistrals(id) ON DELETE CASCADE;
