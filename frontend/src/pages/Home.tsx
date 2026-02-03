@@ -5,8 +5,23 @@ import { Protocol } from 'pmtiles';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MainButtons from './map_pages/MainButtons';
 
+import { icons } from './map_pages/icons';
+import type { FeatureCollection, Feature, Point, LineString } from 'geojson';
+
 const Home: React.FC = () => {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<maplibregl.Map | null>(null);
+
+  const pointSourceRef = useRef<FeatureCollection<Point>>({
+    type: 'FeatureCollection',
+    features: [],
+  });
+
+  const lineSourceRef = useRef<FeatureCollection<LineString>>({
+    type: 'FeatureCollection',
+    features: [],
+  });
+
   type MapMode = 'idle' | 'create-telecom' | 'create-magistral';
   const [mode, setMode] = useState<MapMode>('idle');
   const modeRef = useRef<MapMode>('idle');
@@ -28,222 +43,9 @@ const Home: React.FC = () => {
       zoom: 5,
     });
 
-    // 🔥 ШАГ 3 — ВОТ ОН
-    map.on('load', async () => {
-      // const icons = ['hospital', 'bus', 'town-hall', 'pharmacy', 'bank'];
-      const icons = [
-        'aerialway',
-        'airfield',
-        'airport',
-        'alcohol-shop',
-        'american-football',
-        'amusement-park',
-        'animal-shelter',
-        'aquarium',
-        'arrow',
-        'art-gallery',
-        'attraction',
-        'bakery',
-        'bank',
-        'bank-JP',
-        'bar',
-        'barrier',
-        'baseball',
-        'basketball',
-        'bbq',
-        'beach',
-        'beer',
-        'bicycle',
-        'bicycle-share',
-        'blood-bank',
-        'bowling-alley',
-        'bridge',
-        'building',
-        'building-alt1',
-        'bus',
-        'cafe',
-        'campsite',
-        'car',
-        'car-rental',
-        'car-repair',
-        'casino',
-        'castle',
-        'castle-JP',
-        'caution',
-        'cemetery',
-        'cemetery-JP',
-        'charging-station',
-        'cinema',
-        'circle',
-        'circle-stroked',
-        'city',
-        'clothing-store',
-        'college',
-        'college-JP',
-        'commercial',
-        'communications-tower',
-        'confectionery',
-        'construction',
-        'convenience',
-        'cricket',
-        'cross',
-        'dam',
-        'danger',
-        'defibrillator',
-        'dentist',
-        'diamond',
-        'doctor',
-        'dog-park',
-        'drinking-water',
-        'elevator',
-        'embassy',
-        'emergency-phone',
-        'entrance',
-        'entrance-alt1',
-        'farm',
-        'fast-food',
-        'fence',
-        'ferry',
-        'ferry-JP',
-        'fire-station',
-        'fire-station-JP',
-        'fitness-centre',
-        'florist',
-        'fuel',
-        'furniture',
-        'gaming',
-        'garden',
-        'garden-centre',
-        'gate',
-        'gift',
-        'globe',
-        'golf',
-        'grocery',
-        'hairdresser',
-        'hardware',
-        'heart',
-        'heliport',
-        'highway-rest-area',
-        'historic',
-        'home',
-        'horse-riding',
-        'hospital',
-        'hospital-JP',
-        'hot-spring',
-        'ice-cream',
-        'industry',
-        'information',
-        'jewelry-store',
-        'karaoke',
-        'landmark',
-        'landmark-JP',
-        'landuse',
-        'library',
-        'lift-gate',
-        'lighthouse',
-        'lighthouse-JP',
-        'lodging',
-        'logging',
-        'marae',
-        'marker',
-        'marker-stroked',
-        'mobile-phone',
-        'monument',
-        'monument-JP',
-        'mountain',
-        'museum',
-        'music',
-        'natural',
-        'nightclub',
-        'observation-tower',
-        'optician',
-        'paint',
-        'park',
-        'park-alt1',
-        'parking',
-        'parking-paid',
-        'pharmacy',
-        'picnic-site',
-        'pitch',
-        'place-of-worship',
-        'playground',
-        'police',
-        'police-JP',
-        'post',
-        'post-JP',
-        'prison',
-        'racetrack',
-        'racetrack-boat',
-        'racetrack-cycling',
-        'racetrack-horse',
-        'rail',
-        'rail-light',
-        'rail-metro',
-        'recycling',
-        'religious-buddhist',
-        'religious-christian',
-        'religious-jewish',
-        'religious-muslim',
-        'religious-shinto',
-        'residential-community',
-        'restaurant',
-        'restaurant-bbq',
-        'restaurant-noodle',
-        'restaurant-pizza',
-        'restaurant-seafood',
-        'restaurant-sushi',
-        'road-accident',
-        'roadblock',
-        'rocket',
-        'school',
-        'school-JP',
-        'scooter',
-        'shelter',
-        'shoe',
-        'shop',
-        'skateboard',
-        'skiing',
-        'slaughterhouse',
-        'slipway',
-        'snowmobile',
-        'soccer',
-        'square',
-        'square-stroked',
-        'stadium',
-        'star',
-        'star-stroked',
-        'suitcase',
-        'swimming',
-        'table-tennis',
-        'taxi',
-        'teahouse',
-        'telephone',
-        'tennis',
-        'terminal',
-        'theatre',
-        'toilet',
-        'toll',
-        'town',
-        'town-hall',
-        'triangle',
-        'triangle-stroked',
-        'tunnel',
-        'veterinary',
-        'viewpoint',
-        'village',
-        'volleyball',
-        'warehouse',
-        'waste-basket',
-        'watch',
-        'water',
-        'waterfall',
-        'watermill',
-        'wetland',
-        'wheelchair',
-        'windmill',
-        'zoo',
-      ];
+    mapInstanceRef.current = map;
 
+    map.on('load', async () => {
       for (const name of icons) {
         try {
           const image = await map.loadImage(`/maps/icons/${name}.png`);
@@ -256,7 +58,36 @@ const Home: React.FC = () => {
         }
       }
 
-      // ✅ 2. Добавляем source
+      map.addSource('click-point', {
+        type: 'geojson',
+        data: pointSourceRef.current,
+      });
+
+      map.addSource('telecom-line', {
+        type: 'geojson',
+        data: lineSourceRef.current,
+      });
+
+      map.addLayer({
+        id: 'click-point-layer',
+        type: 'circle',
+        source: 'click-point',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': 'green',
+        },
+      });
+
+      map.addLayer({
+        id: 'telecom-line-layer',
+        type: 'line',
+        source: 'telecom-line',
+        paint: {
+          'line-color': '#0066ff',
+          'line-width': 3,
+        },
+      });
+
       map.addSource('telecom', {
         type: 'geojson',
         data: '/data/telecom_objects.geojson',
@@ -288,26 +119,68 @@ const Home: React.FC = () => {
       });
     });
 
-    // map.on('click', (e) => {
-    //   const { lng, lat } = e.lngLat;
-    //   console.log('📍 Координаты:', lng, lat);
-    // });
-
     map.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
-
-      if (modeRef.current === 'create-telecom') {
-        console.log('📡 CREATE TELECOM:', lng, lat);
-
-        // ⏳ дальше тут будет:
-        // add point to geojson
-        // or POST /nodes
-
-        setMode('idle');
+      if (modeRef.current !== 'create-telecom') {
         return;
       }
 
-      console.log('📍 Обычный клик:', lng, lat);
+      const { lng, lat } = e.lngLat;
+
+      pointSourceRef.current.features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [lng, lat],
+        },
+        properties: { type: 'telecom-node' },
+      });
+
+      (map.getSource('click-point') as maplibregl.GeoJSONSource).setData(pointSourceRef.current);
+
+      lineSourceRef.current.features = [
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: pointSourceRef.current.features.map((f) => f.geometry.coordinates),
+          },
+          properties: {},
+        },
+      ];
+
+      (map.getSource('telecom-line') as maplibregl.GeoJSONSource).setData(lineSourceRef.current);
+      // if (modeRef.current === 'create-telecom') {
+      //   console.log('📡 CREATE TELECOM:', lng, lat);
+
+      //   // ⏳ дальше тут будет:
+      //   // add point to geojson
+      //   // or POST /nodes
+
+      //   setMode('idle');
+      //   return;
+      // }
+
+      // pointSource.features = [
+      //   {
+      //     type: 'Feature',
+      //     geometry: {
+      //       type: 'Point',
+      //       coordinates: [lng, lat],
+      //     },
+      //     properties: {},
+      //   },
+      // ];
+      // (map.getSource('click-point') as maplibregl.GeoJSONSource).setData(pointSource);
+
+      // pointSource.features.push({
+      //   type: 'Feature',
+      //   geometry: {
+      //     type: 'Point',
+      //     coordinates: [lng, lat],
+      //   },
+      //   properties: {},
+      // });
+      // (map.getSource('click-point') as maplibregl.GeoJSONSource).setData(pointSource);
     });
 
     (window as any).map = map;
@@ -316,6 +189,46 @@ const Home: React.FC = () => {
       map.remove();
       maplibregl.removeProtocol('pmtiles');
     };
+  }, []);
+
+  const undoLastPoint = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const features = pointSourceRef.current.features;
+    if (features.length === 0) return;
+
+    features.pop();
+
+    (map.getSource('click-point') as maplibregl.GeoJSONSource).setData(pointSourceRef.current);
+
+    if (features.length >= 2) {
+      lineSourceRef.current.features = [
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: features.map((f) => f.geometry.coordinates),
+          },
+          properties: {},
+        },
+      ];
+    } else {
+      lineSourceRef.current.features = [];
+    }
+
+    (map.getSource('telecom-line') as maplibregl.GeoJSONSource).setData(lineSourceRef.current);
+  };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.key === 'z') || e.key === 'Backspace') {
+        undoLastPoint();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const zoomToDashoguz = () => {

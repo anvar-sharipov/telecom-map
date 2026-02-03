@@ -2,7 +2,7 @@
 # golang:1.22-alpine — это официальный образ Go с версией 1.22 на лёгком Alpine Linux.
 # AS builder — создаём stage сборки, чтобы позже можно было взять только бинарь и не тащить
 # FROM golang:1.22-alpine AS builder
-FROM golang:1.25-alpine3.20 AS builder
+FROM golang:1.25 AS builder
 
 # 2️⃣ Создаём рабочую директорию внутри контейнера
 # Все команды COPY, RUN, CMD будут выполняться внутри /app.

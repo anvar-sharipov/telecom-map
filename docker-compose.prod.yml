@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgres:16
+    # image: postgres:16
+    image: postgis/postgis:16-3.4
     container_name: telecom_map_postgres_prod
     restart: unless-stopped
     env_file:

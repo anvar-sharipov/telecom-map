@@ -14,6 +14,7 @@ import (
 	admingroups "github.com/anvar-sharipov/telecom-map/internal/handler/admin/groups"
 	"github.com/anvar-sharipov/telecom-map/internal/handler/admin/users"
 	"github.com/anvar-sharipov/telecom-map/internal/handler/nodes"
+
 	"github.com/anvar-sharipov/telecom-map/internal/middleware"
 	"github.com/anvar-sharipov/telecom-map/internal/repository"
 	"github.com/anvar-sharipov/telecom-map/internal/repository/postgres"
@@ -65,6 +66,8 @@ func main() {
 	userRepo := postgres.NewUserRepository(pool)
 	groupRepo := repository.NewGroupRepository(pool)
 	refreshTokenRepo := repository.NewRefreshTokenRepository(pool) // 🔥 ТУТ БЫЛО refreshRepo
+	nodeRepo := postgres.NewNodeRepository(pool)
+	buildingRepo := postgres.NewBuildingRepository(pool)
 
 	// 2️⃣ ПОТОМ создаём сервис (использует refreshTokenRepo)
 	authService := &service.AuthService{
@@ -87,9 +90,12 @@ func main() {
 		GroupRepo: groupRepo,
 	}
 
-	nodeRepo := postgres.NewNodeRepository(pool)
 	nodeHandler := &nodes.Handler{
 		NodeRepo: nodeRepo,
+	}
+
+	buildingHandler := &handler.BuildingHandler{
+		BuildingRepo: buildingRepo,
 	}
 
 	mux := http.NewServeMux()
@@ -105,6 +111,7 @@ func main() {
 
 	mux.HandleFunc(apiPrefix+"/nodes", middleware.ErrorMiddleware(nodeHandler.List))
 	mux.HandleFunc(apiPrefix+"/nodes/create", middleware.ErrorMiddleware(nodeHandler.Create))
+	mux.HandleFunc(apiPrefix+"/buildings", middleware.ErrorMiddleware(middleware.Auth(buildingHandler.Create)))
 
 	// Middleware для CORS
 	handlerWithCORS := func(h http.Handler) http.Handler {
